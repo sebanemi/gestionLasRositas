@@ -5,155 +5,259 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="theme-color" content="#0f172a" />
-  <title>Gestión de Ventas</title>
+  <meta name="theme-color" content="#F6F5F2" />
+  <title>Cuaderno</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #F6F5F2;
+      color: #18181B;
+      -webkit-tap-highlight-color: transparent;
+    }
+    h1, h2, .font-display {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .num {
+      font-variant-numeric: tabular-nums;
+    }
+    .sheet-backdrop {
+      transition: opacity 0.25s ease;
+    }
+    .sheet-panel {
+      transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+  </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen pb-10 font-sans">
+<body class="min-h-screen pb-28 select-none">
 
-  <!-- LOGIN -->
-  <div id="loginBox" class="max-w-md mx-auto mt-20 p-6 hidden">
-    <div class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700">
-      <h1 class="text-2xl font-bold text-center mb-1">Acceso Privado</h1>
-      <p class="text-slate-400 text-sm text-center mb-6">Ingresá la clave para continuar</p>
-      <input id="inputClave" type="password" inputmode="numeric" placeholder="••••"
-        class="w-full p-4 rounded-xl bg-slate-700 text-white text-center text-2xl tracking-widest mb-4 outline-none focus:ring-2 focus:ring-emerald-500" />
+  <!-- PANTALLA DE ACCESO -->
+  <div id="loginBox" class="min-h-screen flex flex-col justify-center px-6 max-w-md mx-auto hidden">
+    <div class="mb-8">
+      <div class="w-12 h-12 rounded-2xl bg-zinc-900 text-white flex items-center justify-center mb-5 shadow-sm">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold tracking-tight text-zinc-900">Entrar al cuaderno</h1>
+      <p class="text-zinc-500 text-sm mt-1">Ingresá tu clave para ver y anotar pedidos.</p>
+    </div>
+
+    <div class="space-y-3">
+      <input id="inputClave" type="password" inputmode="numeric" placeholder="Clave"
+        class="w-full px-4 py-4 rounded-2xl bg-white border border-zinc-200 text-zinc-900 text-lg tracking-widest outline-none focus:border-zinc-900 transition shadow-2xs" />
       <button onclick="guardarClave()"
-        class="w-full bg-emerald-600 active:scale-95 transition text-white font-bold py-4 rounded-xl text-lg">
-        Entrar
+        class="w-full bg-zinc-900 active:scale-[0.99] transition text-white font-semibold py-4 rounded-2xl text-base shadow-sm">
+        Continuar
       </button>
     </div>
   </div>
 
   <!-- APP PRINCIPAL -->
-  <div id="appBox" class="max-w-md mx-auto p-4 hidden">
+  <div id="appBox" class="max-w-md mx-auto hidden">
     
-    <!-- CABECERA Y RESUMEN RÁPIDO -->
-    <div class="flex justify-between items-center mb-4">
-      <h1 class="text-xl font-bold text-emerald-400">Mis Ventas</h1>
-      <button onclick="cerrarSesion()" class="text-xs text-slate-400 underline">Salir</button>
-    </div>
-
-    <div class="grid grid-cols-3 gap-2 mb-5 text-center">
-      <div class="bg-slate-800 p-3 rounded-xl border border-slate-700/60">
-        <p class="text-[11px] text-slate-400 uppercase">Cobrado</p>
-        <p id="resIngresos" class="font-bold text-emerald-400 text-base">$0</p>
-      </div>
-      <div class="bg-slate-800 p-3 rounded-xl border border-slate-700/60">
-        <p class="text-[11px] text-slate-400 uppercase">Gastos</p>
-        <p id="resGastos" class="font-bold text-rose-400 text-base">$0</p>
-      </div>
-      <div class="bg-slate-800 p-3 rounded-xl border border-emerald-500/40">
-        <p class="text-[11px] text-slate-400 uppercase">Ganancia</p>
-        <p id="resNeto" class="font-bold text-white text-base">$0</p>
-      </div>
-    </div>
-
-    <!-- SELECTOR DE MODO: VENTA VS GASTO MATERIAL -->
-    <div class="grid grid-cols-2 gap-2 bg-slate-800 p-1 rounded-xl mb-5">
-      <button id="tabVenta" onclick="cambiarTab('venta')" class="py-2.5 rounded-lg font-semibold text-sm bg-emerald-600 text-white transition">
-        + Nueva Venta
-      </button>
-      <button id="tabGasto" onclick="cambiarTab('gasto')" class="py-2.5 rounded-lg font-semibold text-sm text-slate-300 transition">
-        - Cargar Material
-      </button>
-    </div>
-
-    <!-- FORMULARIO DE VENTA -->
-    <div id="formVenta" class="bg-slate-800 p-5 rounded-2xl shadow-lg space-y-4 mb-6 border border-slate-700/50">
+    <!-- HEADER -->
+    <header class="px-5 pt-6 pb-4 flex items-center justify-between">
       <div>
-        <label class="block text-sm text-slate-300 mb-1">Nombre (Cliente)</label>
-        <input id="nombre" type="text" placeholder="Ej: María"
-          class="w-full p-3.5 rounded-xl bg-slate-700 text-white text-lg outline-none focus:ring-2 focus:ring-emerald-500" />
+        <p class="text-xs font-medium text-zinc-400 uppercase tracking-wider">Resumen del mes</p>
+        <h1 class="text-2xl font-bold tracking-tight text-zinc-900 mt-0.5">Pedidos y caja</h1>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="cargarDatos()" aria-label="Actualizar"
+          class="w-10 h-10 rounded-full bg-white border border-zinc-200/80 flex items-center justify-center text-zinc-600 active:scale-95 transition">
+          <svg id="iconRefresh" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+        </button>
+        <button onclick="cerrarSesion()" class="text-xs font-medium text-zinc-400 px-2 py-1">Salir</button>
+      </div>
+    </header>
+
+    <!-- TARJETA PRINCIPAL DE BALANCE -->
+    <section class="px-5 mb-6">
+      <div class="bg-white rounded-3xl p-5 border border-zinc-200/70 shadow-2xs">
+        <div class="flex items-baseline justify-between">
+          <span class="text-sm text-zinc-500 font-medium">Ganancia neta</span>
+          <span id="badgePendiente" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60 hidden">
+            $0 por cobrar
+          </span>
+        </div>
+        <p id="resNeto" class="font-display text-3xl font-bold tracking-tight text-zinc-900 mt-1 num">$0</p>
+
+        <div class="grid grid-cols-2 gap-4 mt-5 pt-4 border-t border-zinc-100">
+          <div>
+            <p class="text-xs text-zinc-400">Cobrado</p>
+            <p id="resIngresos" class="text-base font-semibold text-emerald-700 mt-0.5 num">$0</p>
+          </div>
+          <div>
+            <p class="text-xs text-zinc-400">Gastos en material</p>
+            <p id="resGastos" class="text-base font-semibold text-zinc-700 mt-0.5 num">$0</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FILTROS DE LISTA -->
+    <section class="px-5">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex gap-1.5 bg-zinc-200/60 p-1 rounded-xl">
+          <button onclick="filtrar('todos')" id="f-todos" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-zinc-900 shadow-2xs transition">
+            Todos
+          </button>
+          <button onclick="filtrar('No')" id="f-No" class="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-600 transition">
+            Pendientes
+          </button>
+          <button onclick="filtrar('Sí')" id="f-Sí" class="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-600 transition">
+            Cobrados
+          </button>
+        </div>
+        <span id="contadorItems" class="text-xs text-zinc-400"></span>
       </div>
 
-      <div>
-        <label class="block text-sm text-slate-300 mb-1">Producto</label>
-        <input id="producto" type="text" placeholder="Ej: Torta / Caja x12..."
-          class="w-full p-3.5 rounded-xl bg-slate-700 text-white text-lg outline-none focus:ring-2 focus:ring-emerald-500" />
+      <!-- LISTA DE MOVIMIENTOS -->
+      <div id="listaVentas" class="space-y-2.5"></div>
+    </section>
+
+    <!-- BOTÓN FLOTANTE INFERIOR -->
+    <div class="fixed bottom-0 inset-x-0 bg-gradient-to-t from-[#F6F5F2] via-[#F6F5F2] to-transparent pt-4 pb-6 px-5 z-20">
+      <div class="max-w-md mx-auto flex gap-2.5">
+        <button onclick="abrirModal('venta')"
+          class="flex-1 bg-zinc-900 active:scale-[0.98] transition text-white font-semibold py-4 px-5 rounded-2xl shadow-lg shadow-zinc-900/15 flex items-center justify-center gap-2 text-base">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+          </svg>
+          Anotar pedido
+        </button>
+        <button onclick="abrirModal('gasto')"
+          class="bg-white border border-zinc-200 active:scale-[0.98] transition text-zinc-800 font-semibold py-4 px-4 rounded-2xl shadow-sm text-sm">
+          + Gasto
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM SHEET (PANEL DESLIZABLE PARA CARGAR) -->
+  <div id="modalBackdrop" onclick="cerrarModal()" class="fixed inset-0 bg-zinc-900/40 backdrop-blur-[2px] z-30 hidden opacity-0 sheet-backdrop"></div>
+  
+  <div id="modalSheet" class="fixed inset-x-0 bottom-0 z-40 max-w-md mx-auto bg-white rounded-t-3xl shadow-2xl translate-y-full sheet-panel hidden">
+    <div class="w-10 h-1 bg-zinc-200 rounded-full mx-auto mt-3 mb-2"></div>
+    
+    <!-- FORMULARIO PEDIDO -->
+    <div id="panelVenta" class="p-5 pb-8 space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-bold text-zinc-900">Nuevo pedido</h2>
+        <button onclick="cerrarModal()" class="text-sm text-zinc-400 font-medium px-2 py-1">Cerrar</button>
       </div>
 
-      <div class="grid grid-cols-2 gap-3">
+      <div class="space-y-3">
         <div>
-          <label class="block text-sm text-slate-300 mb-1">Cantidad</label>
-          <input id="cantidad" type="number" inputmode="numeric" value="1" oninput="calcularTotal()"
-            class="w-full p-3.5 rounded-xl bg-slate-700 text-white text-lg outline-none focus:ring-2 focus:ring-emerald-500" />
+          <label class="block text-xs font-medium text-zinc-500 mb-1">Cliente</label>
+          <input id="nombre" type="text" placeholder="Nombre de quien encarga"
+            class="w-full px-3.5 py-3 rounded-xl bg-zinc-50 border border-zinc-200 text-zinc-900 text-base outline-none focus:bg-white focus:border-zinc-900 transition" />
         </div>
+
         <div>
-          <label class="block text-sm text-slate-300 mb-1">Precio Unitario ($)</label>
-          <input id="precioUnitario" type="number" inputmode="decimal" placeholder="0" oninput="calcularTotal()"
-            class="w-full p-3.5 rounded-xl bg-slate-700 text-white text-lg outline-none focus:ring-2 focus:ring-emerald-500" />
+          <label class="block text-xs font-medium text-zinc-500 mb-1">Producto</label>
+          <input id="producto" type="text" placeholder="Qué pidió"
+            class="w-full px-3.5 py-3 rounded-xl bg-zinc-50 border border-zinc-200 text-zinc-900 text-base outline-none focus:bg-white focus:border-zinc-900 transition" />
         </div>
-      </div>
 
-      <!-- PRECIO TOTAL EN VIVO -->
-      <div class="bg-slate-900/70 px-4 py-3 rounded-xl flex justify-between items-center border border-slate-700">
-        <span class="text-sm text-slate-400">Precio Total:</span>
-        <span id="previewTotal" class="text-xl font-bold text-emerald-400">$0</span>
-      </div>
-
-      <!-- PAGO: SÍ / NO -->
-      <div>
-        <label class="block text-sm text-slate-300 mb-1.5">¿Ya pagó?</label>
         <div class="grid grid-cols-2 gap-3">
-          <button type="button" id="btnPagoSi" onclick="setPago('Sí')"
-            class="py-3.5 rounded-xl font-bold text-base border-2 border-emerald-500 bg-emerald-600 text-white transition">
-            Sí (Pagado)
-          </button>
-          <button type="button" id="btnPagoNo" onclick="setPago('No')"
-            class="py-3.5 rounded-xl font-bold text-base border-2 border-slate-600 bg-slate-700 text-slate-300 transition">
-            No (Debe)
-          </button>
+          <div>
+            <label class="block text-xs font-medium text-zinc-500 mb-1">Cantidad</label>
+            <div class="flex items-center bg-zinc-50 border border-zinc-200 rounded-xl overflow-hidden">
+              <button type="button" onclick="cambiarCantidad(-1)" class="w-11 h-12 text-lg font-semibold text-zinc-600 active:bg-zinc-200">−</button>
+              <input id="cantidad" type="number" inputmode="numeric" value="1" oninput="calcularTotal()"
+                class="w-full text-center bg-transparent font-semibold text-zinc-900 text-base outline-none num" />
+              <button type="button" onclick="cambiarCantidad(1)" class="w-11 h-12 text-lg font-semibold text-zinc-600 active:bg-zinc-200">+</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-zinc-500 mb-1">Precio c/u ($)</label>
+            <input id="precioUnitario" type="number" inputmode="decimal" placeholder="0" oninput="calcularTotal()"
+              class="w-full px-3.5 h-12 rounded-xl bg-zinc-50 border border-zinc-200 text-zinc-900 text-base font-semibold outline-none focus:bg-white focus:border-zinc-900 transition num" />
+          </div>
+        </div>
+
+        <!-- PAGO Y MEDIO EN SEGMENTOS LIMPIOS -->
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <div>
+            <label class="block text-xs font-medium text-zinc-500 mb-1.5">Estado del pago</label>
+            <div class="grid grid-cols-2 bg-zinc-100 p-1 rounded-xl">
+              <button type="button" id="btnPagoSi" onclick="setPago('Sí')"
+                class="py-2 rounded-lg text-xs font-semibold bg-white text-emerald-700 shadow-2xs transition">
+                Pagado
+              </button>
+              <button type="button" id="btnPagoNo" onclick="setPago('No')"
+                class="py-2 rounded-lg text-xs font-medium text-zinc-500 transition">
+                Debe
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-zinc-500 mb-1.5">Medio</label>
+            <div class="grid grid-cols-2 bg-zinc-100 p-1 rounded-xl">
+              <button type="button" id="btnMedioEf" onclick="setMedio('Efectivo')"
+                class="py-2 rounded-lg text-xs font-semibold bg-white text-zinc-900 shadow-2xs transition">
+                Efectivo
+              </button>
+              <button type="button" id="btnMedioTr" onclick="setMedio('Transferencia')"
+                class="py-2 rounded-lg text-xs font-medium text-zinc-500 transition">
+                Transf.
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- MEDIO DE PAGO -->
-      <div>
-        <label class="block text-sm text-slate-300 mb-1.5">Medio de pago</label>
-        <div class="grid grid-cols-2 gap-3">
-          <button type="button" id="btnMedioEf" onclick="setMedio('Efectivo')"
-            class="py-3.5 rounded-xl font-bold text-base border-2 border-sky-500 bg-sky-600 text-white transition">
-            Efectivo
-          </button>
-          <button type="button" id="btnMedioTr" onclick="setMedio('Transferencia')"
-            class="py-3.5 rounded-xl font-bold text-base border-2 border-slate-600 bg-slate-700 text-slate-300 transition">
-            Transferencia
-          </button>
+      <!-- TOTAL Y BOTÓN GUARDAR -->
+      <div class="pt-3 border-t border-zinc-100 flex items-center justify-between gap-4">
+        <div>
+          <p class="text-xs text-zinc-400">Total pedido</p>
+          <p id="previewTotal" class="font-display text-2xl font-bold text-zinc-900 num">$0</p>
         </div>
+        <button id="btnGuardarVenta" onclick="guardarVenta()"
+          class="bg-zinc-900 active:scale-[0.98] transition text-white font-semibold px-7 py-3.5 rounded-2xl text-base shadow-sm">
+          Guardar
+        </button>
       </div>
-
-      <button id="btnGuardarVenta" onclick="guardarVenta()"
-        class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition text-white font-bold py-4 rounded-xl text-lg shadow-lg mt-2">
-        Guardar Venta
-      </button>
     </div>
 
-    <!-- FORMULARIO DE GASTO DE MATERIAL -->
-    <div id="formGasto" class="bg-slate-800 p-5 rounded-2xl shadow-lg space-y-4 mb-6 border border-slate-700/50 hidden">
-      <div>
-        <label class="block text-sm text-slate-300 mb-1">Material / Insumo comprado</label>
-        <input id="material" type="text" placeholder="Ej: Cajas, cintas, harina..."
-          class="w-full p-3.5 rounded-xl bg-slate-700 text-white text-lg outline-none focus:ring-2 focus:ring-rose-500" />
+    <!-- FORMULARIO GASTO -->
+    <div id="panelGasto" class="p-5 pb-8 space-y-4 hidden">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-bold text-zinc-900">Anotar gasto de material</h2>
+        <button onclick="cerrarModal()" class="text-sm text-zinc-400 font-medium px-2 py-1">Cerrar</button>
       </div>
-      <div>
-        <label class="block text-sm text-slate-300 mb-1">Gasto Total ($)</label>
-        <input id="gastoMonto" type="number" inputmode="decimal" placeholder="0"
-          class="w-full p-3.5 rounded-xl bg-slate-700 text-white text-lg outline-none focus:ring-2 focus:ring-rose-500" />
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-zinc-500 mb-1">Material o insumo</label>
+          <input id="material" type="text" placeholder="Ej: Cajas, cintas, ingredientes..."
+            class="w-full px-3.5 py-3 rounded-xl bg-zinc-50 border border-zinc-200 text-zinc-900 text-base outline-none focus:bg-white focus:border-zinc-900 transition" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-zinc-500 mb-1">Monto gastado ($)</label>
+          <input id="gastoMonto" type="number" inputmode="decimal" placeholder="0"
+            class="w-full px-3.5 py-3 rounded-xl bg-zinc-50 border border-zinc-200 text-zinc-900 text-base font-semibold outline-none focus:bg-white focus:border-zinc-900 transition num" />
+        </div>
       </div>
+
       <button id="btnGuardarGasto" onclick="guardarGasto()"
-        class="w-full bg-rose-600 hover:bg-rose-500 active:scale-95 transition text-white font-bold py-4 rounded-xl text-lg shadow-lg">
-        Registrar Gasto
+        class="w-full bg-zinc-900 active:scale-[0.98] transition text-white font-semibold py-4 rounded-2xl text-base mt-2">
+        Guardar gasto
       </button>
     </div>
+  </div>
 
-    <p id="toast" class="text-center text-sm font-semibold mb-4 hidden"></p>
-
-    <!-- HISTORIAL DE VENTAS -->
-    <div class="flex justify-between items-center mb-3">
-      <h2 class="text-base font-semibold text-slate-300">Últimos pedidos</h2>
-      <button onclick="cargarDatos()" class="text-sm text-emerald-400">Actualizar</button>
-    </div>
-    <div id="listaVentas" class="space-y-2.5"></div>
+  <!-- NOTIFICACIÓN FLOTANTE SUTIL -->
+  <div id="toast" class="fixed top-5 inset-x-0 flex justify-center z-50 pointer-events-none hidden">
+    <div id="toastText" class="bg-zinc-900 text-white text-sm font-medium px-4 py-2.5 rounded-full shadow-lg"></div>
   </div>
 
   <script>
@@ -161,6 +265,8 @@
 
     let estadoPago = "Sí";
     let estadoMedio = "Efectivo";
+    let filtroActual = "todos";
+    let todasLasVentas = [];
 
     function iniciar() {
       if (!localStorage.getItem("pwa_clave")) {
@@ -185,42 +291,75 @@
       location.reload();
     }
 
-    function cambiarTab(tab) {
-      const esVenta = tab === "venta";
-      document.getElementById("formVenta").classList.toggle("hidden", !esVenta);
-      document.getElementById("formGasto").classList.toggle("hidden", esVenta);
-      document.getElementById("tabVenta").className = esVenta
-        ? "py-2.5 rounded-lg font-semibold text-sm bg-emerald-600 text-white transition"
-        : "py-2.5 rounded-lg font-semibold text-sm text-slate-300 transition";
-      document.getElementById("tabGasto").className = !esVenta
-        ? "py-2.5 rounded-lg font-semibold text-sm bg-rose-600 text-white transition"
-        : "py-2.5 rounded-lg font-semibold text-sm text-slate-300 transition";
+    // Bottom sheet controls
+    function abrirModal(tipo) {
+      document.getElementById("panelVenta").classList.toggle("hidden", tipo !== "venta");
+      document.getElementById("panelGasto").classList.toggle("hidden", tipo !== "gasto");
+      
+      const backdrop = document.getElementById("modalBackdrop");
+      const sheet = document.getElementById("modalSheet");
+      backdrop.classList.remove("hidden");
+      sheet.classList.remove("hidden");
+      
+      requestAnimationFrame(() => {
+        backdrop.classList.remove("opacity-0");
+        sheet.classList.remove("translate-y-full");
+      });
+    }
+
+    function cerrarModal() {
+      const backdrop = document.getElementById("modalBackdrop");
+      const sheet = document.getElementById("modalSheet");
+      backdrop.classList.add("opacity-0");
+      sheet.classList.add("translate-y-full");
+      setTimeout(() => {
+        backdrop.classList.add("hidden");
+        sheet.classList.add("hidden");
+      }, 280);
+    }
+
+    function cambiarCantidad(delta) {
+      const input = document.getElementById("cantidad");
+      const actual = Number(input.value) || 1;
+      input.value = Math.max(1, actual + delta);
+      calcularTotal();
     }
 
     function setPago(val) {
       estadoPago = val;
       document.getElementById("btnPagoSi").className = val === "Sí"
-        ? "py-3.5 rounded-xl font-bold text-base border-2 border-emerald-500 bg-emerald-600 text-white transition"
-        : "py-3.5 rounded-xl font-bold text-base border-2 border-slate-600 bg-slate-700 text-slate-300 transition";
+        ? "py-2 rounded-lg text-xs font-semibold bg-white text-emerald-700 shadow-2xs transition"
+        : "py-2 rounded-lg text-xs font-medium text-zinc-500 transition";
       document.getElementById("btnPagoNo").className = val === "No"
-        ? "py-3.5 rounded-xl font-bold text-base border-2 border-amber-500 bg-amber-600 text-white transition"
-        : "py-3.5 rounded-xl font-bold text-base border-2 border-slate-600 bg-slate-700 text-slate-300 transition";
+        ? "py-2 rounded-lg text-xs font-semibold bg-white text-amber-700 shadow-2xs transition"
+        : "py-2 rounded-lg text-xs font-medium text-zinc-500 transition";
     }
 
     function setMedio(val) {
       estadoMedio = val;
       document.getElementById("btnMedioEf").className = val === "Efectivo"
-        ? "py-3.5 rounded-xl font-bold text-base border-2 border-sky-500 bg-sky-600 text-white transition"
-        : "py-3.5 rounded-xl font-bold text-base border-2 border-slate-600 bg-slate-700 text-slate-300 transition";
+        ? "py-2 rounded-lg text-xs font-semibold bg-white text-zinc-900 shadow-2xs transition"
+        : "py-2 rounded-lg text-xs font-medium text-zinc-500 transition";
       document.getElementById("btnMedioTr").className = val === "Transferencia"
-        ? "py-3.5 rounded-xl font-bold text-base border-2 border-sky-500 bg-sky-600 text-white transition"
-        : "py-3.5 rounded-xl font-bold text-base border-2 border-slate-600 bg-slate-700 text-slate-300 transition";
+        ? "py-2 rounded-lg text-xs font-semibold bg-white text-zinc-900 shadow-2xs transition"
+        : "py-2 rounded-lg text-xs font-medium text-zinc-500 transition";
     }
 
     function calcularTotal() {
       const cant = Number(document.getElementById("cantidad").value) || 0;
       const unit = Number(document.getElementById("precioUnitario").value) || 0;
       document.getElementById("previewTotal").textContent = "$" + (cant * unit).toLocaleString("es-AR");
+    }
+
+    function filtrar(tipo) {
+      filtroActual = tipo;
+      ["todos", "No", "Sí"].forEach(f => {
+        const btn = document.getElementById("f-" + f);
+        btn.className = f === tipo
+          ? "px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-zinc-900 shadow-2xs transition"
+          : "px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-600 transition";
+      });
+      renderLista();
     }
 
     async function apiCall(payload) {
@@ -240,7 +379,7 @@
       const btn = document.getElementById("btnGuardarVenta");
 
       if (!nombre || !producto || !cantidad || !precio_unitario) {
-        mostrarToast("Completá todos los campos", "text-amber-400");
+        mostrarToast("Falta completar algún dato");
         return;
       }
 
@@ -264,16 +403,17 @@
           document.getElementById("cantidad").value = "1";
           document.getElementById("precioUnitario").value = "";
           calcularTotal();
-          mostrarToast("¡Venta guardada!", "text-emerald-400");
+          cerrarModal();
+          mostrarToast("Pedido anotado");
           cargarDatos();
         } else {
-          mostrarToast("Error: " + data.message, "text-rose-400");
+          mostrarToast(data.message);
         }
       } catch (e) {
-        mostrarToast("Error de conexión", "text-rose-400");
+        mostrarToast("Sin conexión");
       } finally {
         btn.disabled = false;
-        btn.textContent = "Guardar Venta";
+        btn.textContent = "Guardar";
       }
     }
 
@@ -283,33 +423,34 @@
       const btn = document.getElementById("btnGuardarGasto");
 
       if (!material || !gasto) {
-        mostrarToast("Completá material y monto", "text-amber-400");
+        mostrarToast("Completá material y monto");
         return;
       }
 
       btn.disabled = true;
-      btn.textContent = "Registrando...";
+      btn.textContent = "Guardando...";
 
       try {
         const data = await apiCall({ accion: "agregar_gasto", material, gasto });
         if (data.status === "ok") {
           document.getElementById("material").value = "";
           document.getElementById("gastoMonto").value = "";
-          mostrarToast("¡Gasto registrado!", "text-emerald-400");
+          cerrarModal();
+          mostrarToast("Gasto anotado");
           cargarDatos();
         } else {
-          mostrarToast("Error: " + data.message, "text-rose-400");
+          mostrarToast(data.message);
         }
       } catch (e) {
-        mostrarToast("Error de conexión", "text-rose-400");
+        mostrarToast("Sin conexión");
       } finally {
         btn.disabled = false;
-        btn.textContent = "Registrar Gasto";
+        btn.textContent = "Guardar gasto";
       }
     }
 
     async function togglePago(id) {
-      mostrarToast("Actualizando pago...", "text-slate-300");
+      mostrarToast("Actualizando estado...");
       const data = await apiCall({ accion: "toggle_pago", id });
       if (data.status === "ok") {
         cargarDatos();
@@ -317,13 +458,13 @@
     }
 
     async function cargarDatos() {
-      const lista = document.getElementById("listaVentas");
-      lista.innerHTML = `<p class="text-slate-400 text-sm">Actualizando...</p>`;
+      const icon = document.getElementById("iconRefresh");
+      icon.classList.add("animate-spin");
 
       try {
         const data = await apiCall({ accion: "leer" });
         if (data.status !== "ok") {
-          lista.innerHTML = `<p class="text-rose-400 text-sm">${data.message}</p>`;
+          mostrarToast(data.message);
           return;
         }
 
@@ -331,44 +472,76 @@
         document.getElementById("resGastos").textContent = "$" + data.resumen.gastos.toLocaleString("es-AR");
         document.getElementById("resNeto").textContent = "$" + data.resumen.neto.toLocaleString("es-AR");
 
-        if (!data.ventas.length) {
-          lista.innerHTML = `<p class="text-slate-500 text-sm">No hay ventas cargadas todavía.</p>`;
-          return;
+        const badge = document.getElementById("badgePendiente");
+        if (data.resumen.pendiente > 0) {
+          badge.textContent = "$" + data.resumen.pendiente.toLocaleString("es-AR") + " por cobrar";
+          badge.classList.remove("hidden");
+        } else {
+          badge.classList.add("hidden");
         }
 
-        lista.innerHTML = data.ventas.map(v => {
-          const pagado = v.pago === "Sí";
-          return `
-            <div class="bg-slate-800 p-3.5 rounded-xl border ${pagado ? 'border-slate-700/60' : 'border-amber-500/50'} flex justify-between items-center gap-2">
-              <div>
-                <div class="flex items-center gap-2">
-                  <span class="font-bold text-white">${v.nombre}</span>
-                  <span class="text-xs text-slate-400">· ${v.fecha}</span>
-                </div>
-                <p class="text-sm text-slate-300">${v.cantidad}x ${v.producto}</p>
-                <p class="text-xs text-slate-400">${v.medio}</p>
-              </div>
-              <div class="text-right flex flex-col items-end gap-1.5">
-                <span class="font-bold text-base text-white">$${Number(v.total).toLocaleString("es-AR")}</span>
-                <button onclick="togglePago(${v.id})"
-                  class="px-3 py-1 rounded-lg text-xs font-bold ${pagado ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'}">
-                  ${pagado ? 'Pagado ✓' : 'Debe (Marcar Sí)'}
-                </button>
-              </div>
-            </div>
-          `;
-        }).join("");
+        todasLasVentas = data.ventas;
+        renderLista();
       } catch (e) {
-        lista.innerHTML = `<p class="text-rose-400 text-sm">Error al cargar datos.</p>`;
+        mostrarToast("Error al actualizar");
+      } finally {
+        icon.classList.remove("animate-spin");
       }
     }
 
-    function mostrarToast(msg, color) {
+    function renderLista() {
+      const lista = document.getElementById("listaVentas");
+      const filtradas = filtroActual === "todos"
+        ? todasLasVentas
+        : todasLasVentas.filter(v => v.pago === filtroActual);
+
+      document.getElementById("contadorItems").textContent = `${filtradas.length} ${filtradas.length === 1 ? 'pedido' : 'pedidos'}`;
+
+      if (!filtradas.length) {
+        lista.innerHTML = `
+          <div class="bg-white rounded-2xl p-8 text-center border border-zinc-200/60">
+            <p class="text-sm text-zinc-400">No hay pedidos en esta vista.</p>
+          </div>`;
+        return;
+      }
+
+      lista.innerHTML = filtradas.map(v => {
+        const pagado = v.pago === "Sí";
+        const inicial = (v.nombre || "?").charAt(0).toUpperCase();
+        return `
+          <div class="bg-white p-4 rounded-2xl border border-zinc-200/70 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-full ${pagado ? 'bg-zinc-100 text-zinc-700' : 'bg-amber-100 text-amber-800'} font-display font-bold text-sm flex items-center justify-center shrink-0">
+                ${inicial}
+              </div>
+              <div class="min-w-0">
+                <p class="font-semibold text-zinc-900 text-sm truncate">${v.nombre}</p>
+                <p class="text-xs text-zinc-500 truncate">${v.cantidad} × ${v.producto}</p>
+                <p class="text-[11px] text-zinc-400 mt-0.5">${v.fecha} · ${v.medio}</p>
+              </div>
+            </div>
+
+            <div class="text-right shrink-0 flex flex-col items-end gap-1.5">
+              <span class="font-display font-bold text-sm text-zinc-900 num">$${Number(v.total).toLocaleString("es-AR")}</span>
+              <button onclick="togglePago(${v.id})"
+                class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition active:scale-95 ${
+                  pagado
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : 'bg-amber-50 text-amber-800 border border-amber-200/80'
+                }">
+                ${pagado ? 'Cobrado' : 'Marcar pago'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function mostrarToast(msg) {
       const el = document.getElementById("toast");
-      el.textContent = msg;
-      el.className = `text-center text-sm font-semibold mb-4 ${color}`;
+      document.getElementById("toastText").textContent = msg;
       el.classList.remove("hidden");
-      setTimeout(() => el.classList.add("hidden"), 2500);
+      setTimeout(() => el.classList.add("hidden"), 2400);
     }
 
     iniciar();
