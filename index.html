@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Gestión de Ventas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen pb-10 font-sans">
+
+  <!-- LOGIN -->
+  <div id="loginBox" class="max-w-md mx-auto mt-20 p-6 hidden">
+    <div class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700">
+      <h1 class="text-2xl font-bold text-center mb-1">Acceso Privado</h1>
+      <p class="text-slate-400 text-sm text-center mb-6">Ingresá la clave para continuar</p>
+      <input id="inputClave" type="password" inputmode="numeric" placeholder="••••"
+        class="w-full p-4 rounded-xl bg-slate-700 text-white text-center text-2xl tracking-widest mb-4 outline-none focus:ring-2 focus:ring-emerald-500" />
+      <button onclick="guardarClave()"
+        class="w-full bg-emerald-600 active:scale-95 transition text-white font-bold py-4 rounded-xl text-lg">
+        Entrar
+      </button>
+    </div>
+  </div>
+
+  <!-- APP PRINCIPAL -->
+  <div id="appBox" class="max-w-md mx-auto p-4 hidden">
+    
+    <!-- CABECERA Y RESUMEN RÁPIDO -->
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-xl font-bold text-emerald-400">Mis Ventas</h1>
+      <button onclick="cerrarSesion()" class="text-xs text-slate-400 underline">Salir</button>
+    </div>
+
+    <div class="grid grid-cols-3 gap-2 mb-5 text-center">
+      <div class="bg-slate-800 p-3 rounded-xl border border-slate-700/60">
+        <p class="text-[11px] text-slate-400 uppercase">Cobrado</p>
+        <p id="resIngresos" class="font-bold text-emerald-400 text-base">$0</p>
+      </div>
+      <div class="bg-slate-800 p-3 rounded-xl border border-slate-700/60">
+        <p class="text-[11px] text-slate-400 uppercase">Gastos</p>
+        <p id="resGastos" class="font-bold text-rose-400 text-base">$0</p>
+      </div>
+      <div class="bg-slate-800 p-3 rounded-xl border border-emerald-500/40">
+        <p class="text-[11px] text-slate-400 uppercase">Ganancia</p>
+        <p id="resNeto" class="font-bold text-white text-base">$0</p>
+      </div>
+    </div>
+
+    <!-- SELECTOR DE MODO: VENTA VS GASTO MATERIAL -->
+    <div class="grid grid-cols-2 gap-2 bg-slate-800 p-1 rounded-xl mb-5">
+      <button id="tabVenta" onclick="cambiarTab('venta')" class="py-2.5 rounded-lg font-semibold text-sm bg-emerald-600 text-white transition">
+        + Nueva Venta
+      </button>
+      <button id="tabGasto" onclick="cambiarTab('gasto')" class="py-2.5 rounded-lg font-semibold text-sm text-slate-300 transition">
+        - Cargar Material
+      </button>
+    </div>
+
+    <!-- FORMULARIO DE VENTA -->
+    <div id="formVenta" class="bg-slate-800 p-5 rounded-2xl shadow-lg space-y-4 mb-6 border border-slate-700/50">
+      <div>
+        <label class="block text-sm text-slate-300 mb-1">Nombre (Cliente)</label>
+        <input id="nombre" type="text" placeholder="Ej: María"
+          class="w-full p-3.5 rounded-xl bg-slate-700 text-white text-lg outline-none focus:ring-2 focus:ring-emerald-500" />
+      </div>
+
+      <div>
+        <label class="block text-sm text-slate-300 mb-1">Producto</label>
+        <input id="producto" type="text" placeholder="Ej: Torta / Caja x12..."
+          class="w-full p-3.5 rounded-xl bg-slate-700 text-white text-lg outline-none focus:ring-2 focus:ring-emerald-500" />
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm text-slate-300 mb-1">Cantidad</label>
+          <input id="cantidad" type="number" inputmode="numeric" value="1" oninput="calcularTotal()"
+            class="w-full p-3.5 rounded-xl bg-slate-700 text-white text-lg outline-none focus:ring-2 focus:ring-emerald-500" />
+        </div>
+        <div>
+          <label class="block text-sm text-slate-300 mb-1">Precio Unitario ($)</label>
+          <input id="precioUnitario" type="number" inputmode="decimal" placeholder="0" oninput="calcularTotal()"
+            class="w-full p-3.5 rounded-xl bg-slate-700 text-white text-lg outline-none focus:ring-2 focus:ring-emerald-500" />
+        </div>
+      </div>
+
+      <!-- PRECIO TOTAL EN VIVO -->
+      <div class="bg-slate-900/70 px-4 py-3 rounded-xl flex justify-between items-center border border-slate-700">
+        <span class="text-sm text-slate-400">Precio Total:</span>
+        <span id="previewTotal" class="text-xl font-bold text-emerald-400">$0</span>
+      </div>
+
+      <!-- PAGO: SÍ / NO -->
+      <div>
+        <label class="block text-sm text-slate-300 mb-1.5">¿Ya pagó?</label>
+        <div class="grid grid-cols-2 gap-3">
+          <button type="button" id="btnPagoSi" onclick="setPago('Sí')"
+            class="py-3.5 rounded-xl font-bold text-base border-2 border-emerald-500 bg-emerald-600 text-white transition">
+            Sí (Pagado)
+          </button>
+          <button type="button" id="btnPagoNo" onclick="setPago('No')"
+            class="py-3.5 rounded-xl font-bold text-base border-2 border-slate-600 bg-slate-700 text-slate-300 transition">
+            No (Debe)
+          </button>
+        </div>
+      </div>
+
+      <!-- MEDIO DE PAGO -->
+      <div>
+        <label class="block text-sm text-slate-300 mb-1.5">Medio de pago</label>
+        <div class="grid grid-cols-2 gap-3">
+          <button type="button" id="btnMedioEf" onclick="setMedio('Efectivo')"
+            class="py-3.5 rounded-xl font-bold text-base border-2 border-sky-500 bg-sky-600 text-white transition">
+            Efectivo
+          </button>
+          <button type="button" id="btnMedioTr" onclick="setMedio('Transferencia')"
+            class="py-3.5 rounded-xl font-bold text-base border-2 border-slate-600 bg-slate-700 text-slate-300 transition">
+            Transferencia
+          </button>
+        </div>
+      </div>
+
+      <button id="btnGuardarVenta" onclick="guardarVenta()"
+        class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition text-white font-bold py-4 rounded-xl text-lg shadow-lg mt-2">
+        Guardar Venta
+      </button>
+    </div>
+
+    <!-- FORMULARIO DE GASTO DE MATERIAL -->
+    <div id="formGasto" class="bg-slate-800 p-5 rounded-2xl shadow-lg space-y-4 mb-6 border border-slate-700/50 hidden">
+      <div>
+        <label class="block text-sm text-slate-300 mb-1">Material / Insumo comprado</label>
+        <input id="material" type="text" placeholder="Ej: Cajas, cintas, harina..."
+          class="w-full p-3.5 rounded-xl bg-slate-700 text-white text-lg outline-none focus:ring-2 focus:ring-rose-500" />
+      </div>
+      <div>
+        <label class="block text-sm text-slate-300 mb-1">Gasto Total ($)</label>
+        <input id="gastoMonto" type="number" inputmode="decimal" placeholder="0"
+          class="w-full p-3.5 rounded-xl bg-slate-700 text-white text-lg outline-none focus:ring-2 focus:ring-rose-500" />
+      </div>
+      <button id="btnGuardarGasto" onclick="guardarGasto()"
+        class="w-full bg-rose-600 hover:bg-rose-500 active:scale-95 transition text-white font-bold py-4 rounded-xl text-lg shadow-lg">
+        Registrar Gasto
+      </button>
+    </div>
+
+    <p id="toast" class="text-center text-sm font-semibold mb-4 hidden"></p>
+
+    <!-- HISTORIAL DE VENTAS -->
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-base font-semibold text-slate-300">Últimos pedidos</h2>
+      <button onclick="cargarDatos()" class="text-sm text-emerald-400">Actualizar</button>
+    </div>
+    <div id="listaVentas" class="space-y-2.5"></div>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbx_VMwylWXD3czGq-iiWK1dAK5AL-5tszES5nSgC8APHoOoQhQFbRTM2CGEbpQwT9hOdA/exec";
+
+    let estadoPago = "Sí";
+    let estadoMedio = "Efectivo";
+
+    function iniciar() {
+      if (!localStorage.getItem("pwa_clave")) {
+        document.getElementById("loginBox").classList.remove("hidden");
+      } else {
+        document.getElementById("appBox").classList.remove("hidden");
+        cargarDatos();
+      }
+    }
+
+    function guardarClave() {
+      const c = document.getElementById("inputClave").value.trim();
+      if (!c) return;
+      localStorage.setItem("pwa_clave", c);
+      document.getElementById("loginBox").classList.add("hidden");
+      document.getElementById("appBox").classList.remove("hidden");
+      cargarDatos();
+    }
+
+    function cerrarSesion() {
+      localStorage.removeItem("pwa_clave");
+      location.reload();
+    }
+
+    function cambiarTab(tab) {
+      const esVenta = tab === "venta";
+      document.getElementById("formVenta").classList.toggle("hidden", !esVenta);
+      document.getElementById("formGasto").classList.toggle("hidden", esVenta);
+      document.getElementById("tabVenta").className = esVenta
+        ? "py-2.5 rounded-lg font-semibold text-sm bg-emerald-600 text-white transition"
+        : "py-2.5 rounded-lg font-semibold text-sm text-slate-300 transition";
+      document.getElementById("tabGasto").className = !esVenta
+        ? "py-2.5 rounded-lg font-semibold text-sm bg-rose-600 text-white transition"
+        : "py-2.5 rounded-lg font-semibold text-sm text-slate-300 transition";
+    }
+
+    function setPago(val) {
+      estadoPago = val;
+      document.getElementById("btnPagoSi").className = val === "Sí"
+        ? "py-3.5 rounded-xl font-bold text-base border-2 border-emerald-500 bg-emerald-600 text-white transition"
+        : "py-3.5 rounded-xl font-bold text-base border-2 border-slate-600 bg-slate-700 text-slate-300 transition";
+      document.getElementById("btnPagoNo").className = val === "No"
+        ? "py-3.5 rounded-xl font-bold text-base border-2 border-amber-500 bg-amber-600 text-white transition"
+        : "py-3.5 rounded-xl font-bold text-base border-2 border-slate-600 bg-slate-700 text-slate-300 transition";
+    }
+
+    function setMedio(val) {
+      estadoMedio = val;
+      document.getElementById("btnMedioEf").className = val === "Efectivo"
+        ? "py-3.5 rounded-xl font-bold text-base border-2 border-sky-500 bg-sky-600 text-white transition"
+        : "py-3.5 rounded-xl font-bold text-base border-2 border-slate-600 bg-slate-700 text-slate-300 transition";
+      document.getElementById("btnMedioTr").className = val === "Transferencia"
+        ? "py-3.5 rounded-xl font-bold text-base border-2 border-sky-500 bg-sky-600 text-white transition"
+        : "py-3.5 rounded-xl font-bold text-base border-2 border-slate-600 bg-slate-700 text-slate-300 transition";
+    }
+
+    function calcularTotal() {
+      const cant = Number(document.getElementById("cantidad").value) || 0;
+      const unit = Number(document.getElementById("precioUnitario").value) || 0;
+      document.getElementById("previewTotal").textContent = "$" + (cant * unit).toLocaleString("es-AR");
+    }
+
+    async function apiCall(payload) {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ clave: localStorage.getItem("pwa_clave"), ...payload })
+      });
+      return res.json();
+    }
+
+    async function guardarVenta() {
+      const nombre = document.getElementById("nombre").value.trim();
+      const producto = document.getElementById("producto").value.trim();
+      const cantidad = document.getElementById("cantidad").value;
+      const precio_unitario = document.getElementById("precioUnitario").value;
+      const btn = document.getElementById("btnGuardarVenta");
+
+      if (!nombre || !producto || !cantidad || !precio_unitario) {
+        mostrarToast("Completá todos los campos", "text-amber-400");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Guardando...";
+
+      try {
+        const data = await apiCall({
+          accion: "agregar_venta",
+          nombre,
+          producto,
+          cantidad,
+          precio_unitario,
+          pago: estadoPago,
+          medio_pago: estadoMedio
+        });
+
+        if (data.status === "ok") {
+          document.getElementById("nombre").value = "";
+          document.getElementById("producto").value = "";
+          document.getElementById("cantidad").value = "1";
+          document.getElementById("precioUnitario").value = "";
+          calcularTotal();
+          mostrarToast("¡Venta guardada!", "text-emerald-400");
+          cargarDatos();
+        } else {
+          mostrarToast("Error: " + data.message, "text-rose-400");
+        }
+      } catch (e) {
+        mostrarToast("Error de conexión", "text-rose-400");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Guardar Venta";
+      }
+    }
+
+    async function guardarGasto() {
+      const material = document.getElementById("material").value.trim();
+      const gasto = document.getElementById("gastoMonto").value;
+      const btn = document.getElementById("btnGuardarGasto");
+
+      if (!material || !gasto) {
+        mostrarToast("Completá material y monto", "text-amber-400");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Registrando...";
+
+      try {
+        const data = await apiCall({ accion: "agregar_gasto", material, gasto });
+        if (data.status === "ok") {
+          document.getElementById("material").value = "";
+          document.getElementById("gastoMonto").value = "";
+          mostrarToast("¡Gasto registrado!", "text-emerald-400");
+          cargarDatos();
+        } else {
+          mostrarToast("Error: " + data.message, "text-rose-400");
+        }
+      } catch (e) {
+        mostrarToast("Error de conexión", "text-rose-400");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Registrar Gasto";
+      }
+    }
+
+    async function togglePago(id) {
+      mostrarToast("Actualizando pago...", "text-slate-300");
+      const data = await apiCall({ accion: "toggle_pago", id });
+      if (data.status === "ok") {
+        cargarDatos();
+      }
+    }
+
+    async function cargarDatos() {
+      const lista = document.getElementById("listaVentas");
+      lista.innerHTML = `<p class="text-slate-400 text-sm">Actualizando...</p>`;
+
+      try {
+        const data = await apiCall({ accion: "leer" });
+        if (data.status !== "ok") {
+          lista.innerHTML = `<p class="text-rose-400 text-sm">${data.message}</p>`;
+          return;
+        }
+
+        document.getElementById("resIngresos").textContent = "$" + data.resumen.ingresos.toLocaleString("es-AR");
+        document.getElementById("resGastos").textContent = "$" + data.resumen.gastos.toLocaleString("es-AR");
+        document.getElementById("resNeto").textContent = "$" + data.resumen.neto.toLocaleString("es-AR");
+
+        if (!data.ventas.length) {
+          lista.innerHTML = `<p class="text-slate-500 text-sm">No hay ventas cargadas todavía.</p>`;
+          return;
+        }
+
+        lista.innerHTML = data.ventas.map(v => {
+          const pagado = v.pago === "Sí";
+          return `
+            <div class="bg-slate-800 p-3.5 rounded-xl border ${pagado ? 'border-slate-700/60' : 'border-amber-500/50'} flex justify-between items-center gap-2">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-white">${v.nombre}</span>
+                  <span class="text-xs text-slate-400">· ${v.fecha}</span>
+                </div>
+                <p class="text-sm text-slate-300">${v.cantidad}x ${v.producto}</p>
+                <p class="text-xs text-slate-400">${v.medio}</p>
+              </div>
+              <div class="text-right flex flex-col items-end gap-1.5">
+                <span class="font-bold text-base text-white">$${Number(v.total).toLocaleString("es-AR")}</span>
+                <button onclick="togglePago(${v.id})"
+                  class="px-3 py-1 rounded-lg text-xs font-bold ${pagado ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'}">
+                  ${pagado ? 'Pagado ✓' : 'Debe (Marcar Sí)'}
+                </button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      } catch (e) {
+        lista.innerHTML = `<p class="text-rose-400 text-sm">Error al cargar datos.</p>`;
+      }
+    }
+
+    function mostrarToast(msg, color) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.className = `text-center text-sm font-semibold mb-4 ${color}`;
+      el.classList.remove("hidden");
+      setTimeout(() => el.classList.add("hidden"), 2500);
+    }
+
+    iniciar();
+  </script>
+</body>
+</html>
