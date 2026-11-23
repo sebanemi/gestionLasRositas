@@ -67,10 +67,10 @@
   <div id="appBox" class="max-w-md mx-auto hidden">
     
     <!-- HEADER -->
-    <header class="px-5 pt-6 pb-4 flex items-center justify-between">
+    <header class="px-5 pt-6 pb-3 flex items-center justify-between">
       <div>
-        <p class="text-xs font-medium text-zinc-400 uppercase tracking-wider">Resumen general</p>
-        <h1 class="text-2xl font-bold tracking-tight text-zinc-900 mt-0.5">Pedidos y caja</h1>
+        <p class="text-xs font-medium text-zinc-400 uppercase tracking-wider">Cuaderno</p>
+        <h1 class="text-2xl font-bold tracking-tight text-zinc-900 mt-0.5">Pedidos e insumos</h1>
       </div>
       <div class="flex items-center gap-2">
         <button onclick="cargarDatos()" aria-label="Actualizar"
@@ -83,74 +83,111 @@
       </div>
     </header>
 
-    <!-- TARJETA PRINCIPAL DE BALANCE -->
-    <section class="px-5 mb-6">
-      <div class="bg-white rounded-3xl p-5 border border-zinc-200/70 shadow-2xs">
-        <div class="flex items-baseline justify-between">
-          <span class="text-sm text-zinc-500 font-medium">Ganancia neta</span>
-          <span id="badgePendiente" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60 hidden">
-            $0 por cobrar
-          </span>
-        </div>
-        <p id="resNeto" class="font-display text-3xl font-bold tracking-tight text-zinc-900 mt-1 num">$0</p>
+    <!-- NAVEGACIÓN PRINCIPAL: PEDIDOS VS INSUMOS -->
+    <div class="px-5 mb-5">
+      <div class="grid grid-cols-2 bg-zinc-200/70 p-1 rounded-2xl">
+        <button id="navPedidos" onclick="cambiarSeccion('pedidos')"
+          class="py-2.5 rounded-xl text-sm font-semibold bg-white text-zinc-900 shadow-2xs transition">
+          Pedidos
+        </button>
+        <button id="navInsumos" onclick="cambiarSeccion('insumos')"
+          class="py-2.5 rounded-xl text-sm font-medium text-zinc-600 transition flex items-center justify-center gap-1.5">
+          <span>Insumos</span>
+          <span id="alertaFaltantes" class="hidden w-2 h-2 rounded-full bg-rose-500"></span>
+        </button>
+      </div>
+    </div>
 
-        <div class="grid grid-cols-2 gap-4 mt-5 pt-4 border-t border-zinc-100">
-          <div>
-            <p class="text-xs text-zinc-400">Total cobrado</p>
-            <p id="resIngresos" class="text-base font-semibold text-emerald-700 mt-0.5 num">$0</p>
+    <!-- ==================== SECCIÓN 1: PEDIDOS Y CAJA ==================== -->
+    <div id="seccionPedidos">
+      <!-- TARJETA PRINCIPAL DE BALANCE -->
+      <section class="px-5 mb-6">
+        <div class="bg-white rounded-3xl p-5 border border-zinc-200/70 shadow-2xs">
+          <div class="flex items-baseline justify-between">
+            <span class="text-sm text-zinc-500 font-medium">Ganancia neta</span>
+            <span id="badgePendiente" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60 hidden">
+              $0 por cobrar
+            </span>
           </div>
-          <div>
-            <p class="text-xs text-zinc-400">Costo producción</p>
-            <p id="resCostos" class="text-base font-semibold text-zinc-700 mt-0.5 num">$0</p>
+          <p id="resNeto" class="font-display text-3xl font-bold tracking-tight text-zinc-900 mt-1 num">$0</p>
+
+          <div class="grid grid-cols-2 gap-4 mt-5 pt-4 border-t border-zinc-100">
+            <div>
+              <p class="text-xs text-zinc-400">Total cobrado</p>
+              <p id="resIngresos" class="text-base font-semibold text-emerald-700 mt-0.5 num">$0</p>
+            </div>
+            <div>
+              <p class="text-xs text-zinc-400">Costo producción</p>
+              <p id="resCostos" class="text-base font-semibold text-zinc-700 mt-0.5 num">$0</p>
+            </div>
           </div>
+        </div>
+      </section>
+
+      <!-- FILTROS DE LISTA -->
+      <section class="px-5">
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <div class="flex gap-1 bg-zinc-200/60 p-1 rounded-xl overflow-x-auto no-scrollbar">
+            <button onclick="filtrar('todos')" id="f-todos" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-white text-zinc-900 shadow-2xs transition shrink-0">
+              Todos
+            </button>
+            <button onclick="filtrar('Pendiente')" id="f-Pendiente" class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-zinc-600 transition shrink-0">
+              Pendientes
+            </button>
+            <button onclick="filtrar('Hecho')" id="f-Hecho" class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-zinc-600 transition shrink-0">
+              Hechos
+            </button>
+            <button onclick="filtrar('Entregado')" id="f-Entregado" class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-zinc-600 transition shrink-0">
+              Entregados
+            </button>
+            <button onclick="filtrar('debe')" id="f-debe" class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-zinc-600 transition shrink-0">
+              Sin pagar
+            </button>
+          </div>
+          <span id="contadorItems" class="text-xs text-zinc-400 shrink-0"></span>
+        </div>
+
+        <!-- LISTA DE MOVIMIENTOS -->
+        <div id="listaVentas" class="space-y-2.5"></div>
+      </section>
+    </div>
+
+    <!-- ==================== SECCIÓN 2: CONTROL DE INSUMOS ==================== -->
+    <div id="seccionInsumos" class="px-5 hidden">
+      <div class="bg-white rounded-3xl p-5 border border-zinc-200/70 shadow-2xs mb-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-bold text-zinc-900">Stock por producto</h2>
+            <p class="text-xs text-zinc-500 mt-0.5">Cuenta todos los pedidos (pagados o sin pagar).</p>
+          </div>
+          <button onclick="abrirModalInsumo('')"
+            class="px-3 py-2 rounded-xl bg-zinc-900 text-white text-xs font-semibold active:scale-95 transition">
+            + Compra
+          </button>
         </div>
       </div>
-    </section>
 
-    <!-- FILTROS DE LISTA -->
-    <section class="px-5">
-      <div class="flex items-center justify-between gap-2 mb-3">
-        <div class="flex gap-1 bg-zinc-200/60 p-1 rounded-xl overflow-x-auto no-scrollbar">
-          <button onclick="filtrar('todos')" id="f-todos" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-white text-zinc-900 shadow-2xs transition shrink-0">
-            Todos
-          </button>
-          <button onclick="filtrar('Pendiente')" id="f-Pendiente" class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-zinc-600 transition shrink-0">
-            Pendientes
-          </button>
-          <button onclick="filtrar('Hecho')" id="f-Hecho" class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-zinc-600 transition shrink-0">
-            Hechos
-          </button>
-          <button onclick="filtrar('Entregado')" id="f-Entregado" class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-zinc-600 transition shrink-0">
-            Entregados
-          </button>
-          <button onclick="filtrar('debe')" id="f-debe" class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-zinc-600 transition shrink-0">
-            Sin pagar
-          </button>
-        </div>
-        <span id="contadorItems" class="text-xs text-zinc-400 shrink-0"></span>
-      </div>
-
-      <!-- LISTA DE MOVIMIENTOS -->
-      <div id="listaVentas" class="space-y-2.5"></div>
-    </section>
+      <div id="listaInsumos" class="space-y-2.5"></div>
+    </div>
 
     <!-- BOTÓN FLOTANTE INFERIOR -->
     <div class="fixed bottom-0 inset-x-0 bg-gradient-to-t from-[#F6F5F2] via-[#F6F5F2] to-transparent pt-4 pb-6 px-5 z-20">
       <div class="max-w-md mx-auto">
-        <button onclick="abrirModalNuevo()"
+        <button id="btnPrincipalFlotante" onclick="accionBotonFlotante()"
           class="w-full bg-zinc-900 active:scale-[0.98] transition text-white font-semibold py-4 px-5 rounded-2xl shadow-lg shadow-zinc-900/15 flex items-center justify-center gap-2 text-base">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
           </svg>
-          Anotar pedido
+          <span id="textoBotonFlotante">Anotar pedido</span>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- BOTTOM SHEET 1: CREAR O EDITAR PEDIDO -->
+  <!-- BACKDROP COMPARTIDO -->
   <div id="modalBackdrop" onclick="cerrarTodosLosModales()" class="fixed inset-0 bg-zinc-900/40 backdrop-blur-[2px] z-30 hidden opacity-0 sheet-backdrop"></div>
-  
+
+  <!-- BOTTOM SHEET 1: CREAR O EDITAR PEDIDO -->
   <div id="modalSheet" class="fixed inset-x-0 bottom-0 z-40 max-w-md mx-auto bg-white rounded-t-3xl shadow-2xl translate-y-full sheet-panel hidden max-h-[92vh] overflow-y-auto">
     <div class="w-10 h-1 bg-zinc-200 rounded-full mx-auto mt-3 mb-2"></div>
     
@@ -164,7 +201,7 @@
       </div>
 
       <div class="space-y-3">
-        <!-- ESTADO DEL PEDIDO (3 OPCIONES) -->
+        <!-- ESTADO DEL PEDIDO -->
         <div>
           <label class="block text-xs font-medium text-zinc-500 mb-1.5">Estado del pedido</label>
           <div class="grid grid-cols-3 bg-zinc-100 p-1 rounded-xl gap-1">
@@ -192,8 +229,9 @@
         <div class="grid grid-cols-3 gap-2.5">
           <div class="col-span-2">
             <label class="block text-xs font-medium text-zinc-500 mb-1">Producto</label>
-            <input id="producto" type="text" placeholder="Ej: Lata"
+            <input id="producto" list="listaProductosDatalist" type="text" placeholder="Ej: Vela lata"
               class="w-full px-3.5 py-3 rounded-xl bg-zinc-50 border border-zinc-200 text-zinc-900 text-base outline-none focus:bg-white focus:border-zinc-900 transition" />
+            <datalist id="listaProductosDatalist"></datalist>
           </div>
 
           <div>
@@ -206,6 +244,9 @@
             </div>
           </div>
         </div>
+
+        <!-- CHIPS DE PRODUCTOS EXISTENTES PARA ELEGIR EN 1 TOQUE -->
+        <div id="chipsProductos" class="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5"></div>
 
         <!-- PRECIO UNITARIO Y GASTO UNITARIO -->
         <div class="grid grid-cols-2 gap-3">
@@ -222,7 +263,7 @@
           </div>
         </div>
 
-        <!-- PAGO Y MEDIO (MEDIO SE OCULTA SI ELIGE "DEBE") -->
+        <!-- PAGO Y MEDIO -->
         <div class="grid grid-cols-2 gap-3 pt-1">
           <div id="colEstadoPago">
             <label class="block text-xs font-medium text-zinc-500 mb-1.5">Estado del pago</label>
@@ -275,7 +316,7 @@
     </div>
   </div>
 
-  <!-- BOTTOM SHEET 2: ELEGIR MEDIO AL COBRAR UNA DEUDA RÁPIDAMENTE -->
+  <!-- BOTTOM SHEET 2: ELEGIR MEDIO AL COBRAR UNA DEUDA -->
   <div id="pagoSheet" class="fixed inset-x-0 bottom-0 z-40 max-w-md mx-auto bg-white rounded-t-3xl shadow-2xl translate-y-full sheet-panel hidden">
     <div class="w-10 h-1 bg-zinc-200 rounded-full mx-auto mt-3 mb-2"></div>
     
@@ -313,19 +354,55 @@
     </div>
   </div>
 
+  <!-- BOTTOM SHEET 3: REGISTRAR COMPRA DE INSUMOS / STOCK -->
+  <div id="insumoSheet" class="fixed inset-x-0 bottom-0 z-40 max-w-md mx-auto bg-white rounded-t-3xl shadow-2xl translate-y-full sheet-panel hidden">
+    <div class="w-10 h-1 bg-zinc-200 rounded-full mx-auto mt-3 mb-2"></div>
+    
+    <div class="p-5 pb-8 space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-zinc-900">Cargar compra de insumos</h2>
+          <p class="text-xs text-zinc-400">Se suma a lo que ya tenías comprado</p>
+        </div>
+        <button onclick="cerrarTodosLosModales()" class="text-sm text-zinc-400 font-medium px-2 py-1">Cerrar</button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-zinc-500 mb-1">Producto / Insumo</label>
+          <input id="insumoProducto" list="listaProductosDatalist" type="text" placeholder="Ej: Vela lata"
+            class="w-full px-3.5 py-3 rounded-xl bg-zinc-50 border border-zinc-200 text-zinc-900 text-base outline-none focus:bg-white focus:border-zinc-900 transition" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-zinc-500 mb-1">¿Cuántas unidades compraste ahora?</label>
+          <input id="insumoCantidadSumar" type="number" inputmode="numeric" placeholder="Ej: 10"
+            class="w-full px-3.5 py-3 rounded-xl bg-zinc-50 border border-zinc-200 text-zinc-900 text-base font-semibold outline-none focus:bg-white focus:border-zinc-900 transition num" />
+        </div>
+      </div>
+
+      <button id="btnGuardarInsumo" onclick="guardarCompraInsumo()"
+        class="w-full bg-zinc-900 active:scale-[0.98] transition text-white font-semibold py-4 rounded-2xl text-base shadow-sm">
+        Sumar al stock
+      </button>
+    </div>
+  </div>
+
   <!-- NOTIFICACIÓN FLOTANTE SUTIL -->
   <div id="toast" class="fixed top-5 inset-x-0 flex justify-center z-50 pointer-events-none hidden">
     <div id="toastText" class="bg-zinc-900 text-white text-sm font-medium px-4 py-2.5 rounded-full shadow-lg"></div>
   </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbzjiw2N6qwaKMkjmL7papv3oYKVxZcThomN-utx84iuEmEV-xvd7gpzMB0RhnRDl7SgqQ/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbxnCc-dxTQ6L2H5ZzvX_JF9hJlFiDSAMGot8i-Ics2T9SWk1jNpLuJkyAMayFRlhAOfhA/exec";
 
+    let seccionActual = "pedidos";
     let estadoPedido = "Pendiente";
     let estadoPago = "Sí";
     let estadoMedio = "Efectivo";
     let filtroActual = "todos";
     let todasLasVentas = [];
+    let todoElStock = [];
     let pedidoIdEditando = null;
     let pedidoIdACobrar = null;
 
@@ -350,6 +427,32 @@
     function cerrarSesion() {
       localStorage.removeItem("pwa_clave");
       location.reload();
+    }
+
+    function cambiarSeccion(sec) {
+      seccionActual = sec;
+      const esPedidos = sec === "pedidos";
+
+      document.getElementById("seccionPedidos").classList.toggle("hidden", !esPedidos);
+      document.getElementById("seccionInsumos").classList.toggle("hidden", esPedidos);
+
+      document.getElementById("navPedidos").className = esPedidos
+        ? "py-2.5 rounded-xl text-sm font-semibold bg-white text-zinc-900 shadow-2xs transition"
+        : "py-2.5 rounded-xl text-sm font-medium text-zinc-600 transition";
+
+      document.getElementById("navInsumos").className = !esPedidos
+        ? "py-2.5 rounded-xl text-sm font-semibold bg-white text-zinc-900 shadow-2xs transition flex items-center justify-center gap-1.5"
+        : "py-2.5 rounded-xl text-sm font-medium text-zinc-600 transition flex items-center justify-center gap-1.5";
+
+      document.getElementById("textoBotonFlotante").textContent = esPedidos ? "Anotar pedido" : "Cargar compra de insumos";
+    }
+
+    function accionBotonFlotante() {
+      if (seccionActual === "pedidos") {
+        abrirModalNuevo();
+      } else {
+        abrirModalInsumo("");
+      }
     }
 
     function abrirSheet(sheetId) {
@@ -408,16 +511,22 @@
     }
 
     function abrirModalCobro(event, id, nombre, total) {
-      event.stopPropagation(); // Evita que se abra el editor al tocar el botón de cobro
+      event.stopPropagation();
       pedidoIdACobrar = id;
       document.getElementById("pagoTituloCliente").textContent = `Cobrar a ${nombre}`;
       document.getElementById("pagoSubtituloMonto").textContent = `Total: $${Number(total).toLocaleString("es-AR")} · Elegí cómo pagó`;
       abrirSheet("pagoSheet");
     }
 
+    function abrirModalInsumo(productoPreseleccionado) {
+      document.getElementById("insumoProducto").value = productoPreseleccionado || "";
+      document.getElementById("insumoCantidadSumar").value = "";
+      abrirSheet("insumoSheet");
+    }
+
     function cerrarTodosLosModales() {
       const backdrop = document.getElementById("modalBackdrop");
-      const sheets = ["modalSheet", "pagoSheet"];
+      const sheets = ["modalSheet", "pagoSheet", "insumoSheet"];
       backdrop.classList.add("opacity-0");
       sheets.forEach(s => document.getElementById(s).classList.add("translate-y-full"));
       
@@ -427,6 +536,10 @@
         pedidoIdACobrar = null;
         pedidoIdEditando = null;
       }, 280);
+    }
+
+    function seleccionarProductoChip(nombreProd) {
+      document.getElementById("producto").value = nombreProd;
     }
 
     function cambiarCantidad(delta) {
@@ -563,6 +676,41 @@
       }
     }
 
+    async function guardarCompraInsumo() {
+      const producto = document.getElementById("insumoProducto").value.trim();
+      const cantidad_sumar = Number(document.getElementById("insumoCantidadSumar").value);
+      const btn = document.getElementById("btnGuardarInsumo");
+
+      if (!producto || !cantidad_sumar) {
+        mostrarToast("Completá producto y cantidad");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Guardando...";
+
+      try {
+        const data = await apiCall({
+          accion: "actualizar_stock",
+          producto,
+          cantidad_sumar
+        });
+
+        if (data.status === "ok") {
+          cerrarTodosLosModales();
+          mostrarToast("Stock actualizado");
+          cargarDatos();
+        } else {
+          mostrarToast(data.message);
+        }
+      } catch (e) {
+        mostrarToast("Sin conexión");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Sumar al stock";
+      }
+    }
+
     async function confirmarPagoConMedio(medioElegido) {
       if (!pedidoIdACobrar) return;
       const id = pedidoIdACobrar;
@@ -606,13 +754,87 @@
           badge.classList.add("hidden");
         }
 
-        todasLasVentas = data.ventas;
+        todasLasVentas = data.ventas || [];
+        todoElStock = data.stock || [];
+
+        // Indicador rojo en la pestaña Insumos si algún producto tiene disponible < 0
+        const hayFaltantes = todoElStock.some(s => s.disponible < 0);
+        document.getElementById("alertaFaltantes").classList.toggle("hidden", !hayFaltantes);
+
+        actualizarSugerenciasProductos();
         renderLista();
+        renderInsumos();
       } catch (e) {
         mostrarToast("Error al actualizar");
       } finally {
         icon.classList.remove("animate-spin");
       }
+    }
+
+    function actualizarSugerenciasProductos() {
+      const datalist = document.getElementById("listaProductosDatalist");
+      const chips = document.getElementById("chipsProductos");
+
+      datalist.innerHTML = todoElStock.map(s => `<option value="${s.producto}">`).join("");
+      chips.innerHTML = todoElStock.map(s => {
+        const esc = s.producto.replace(/'/g, "\\'");
+        return `<button type="button" onclick="seleccionarProductoChip('${esc}')"
+          class="px-2.5 py-1 rounded-lg bg-zinc-100 text-zinc-700 text-xs font-medium shrink-0 active:bg-zinc-200 transition">
+          ${s.producto}
+        </button>`;
+      }).join("");
+    }
+
+    function renderInsumos() {
+      const cont = document.getElementById("listaInsumos");
+      if (!todoElStock.length) {
+        cont.innerHTML = `
+          <div class="bg-white rounded-2xl p-8 text-center border border-zinc-200/60">
+            <p class="text-sm text-zinc-400">Todavía no hay productos registrados.</p>
+          </div>`;
+        return;
+      }
+
+      cont.innerHTML = todoElStock.map(s => {
+        const falta = s.disponible < 0;
+        const justo = s.disponible === 0;
+        const esc = s.producto.replace(/'/g, "\\'");
+
+        let estadoBadge = "";
+        if (falta) {
+          estadoBadge = `<span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/80 num">Faltan ${Math.abs(s.disponible)}</span>`;
+        } else if (justo) {
+          estadoBadge = `<span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200/80 num">Quedan 0</span>`;
+        } else {
+          estadoBadge = `<span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 num">Quedan ${s.disponible}</span>`;
+        }
+
+        return `
+          <div class="bg-white p-4 rounded-2xl border ${falta ? 'border-rose-200' : 'border-zinc-200/70'}">
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <p class="font-semibold text-zinc-900 text-base">${s.producto}</p>
+              ${estadoBadge}
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 pt-2.5 border-t border-zinc-100 text-center">
+              <div>
+                <p class="text-[11px] text-zinc-400">Comprado</p>
+                <p class="font-semibold text-sm text-zinc-800 num">${s.comprado}</p>
+              </div>
+              <div>
+                <p class="text-[11px] text-zinc-400">En pedidos</p>
+                <p class="font-semibold text-sm text-zinc-800 num">${s.usado}</p>
+              </div>
+              <div class="flex items-center justify-end">
+                <button onclick="abrirModalInsumo('${esc}')"
+                  class="px-2.5 py-1.5 rounded-lg bg-zinc-100 text-zinc-800 text-xs font-semibold active:scale-95 transition">
+                  + Sumar
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
     }
 
     function badgeEstadoHTML(estado) {
