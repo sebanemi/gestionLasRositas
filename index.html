@@ -155,19 +155,19 @@
     <!-- ==================== SECCIÓN 2: CONTROL DE INSUMOS ==================== -->
     <div id="seccionInsumos" class="px-5 hidden">
       <div class="bg-white rounded-3xl p-5 border border-zinc-200/70 shadow-2xs mb-4">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between gap-3">
           <div>
-            <h2 class="text-base font-bold text-zinc-900">Stock por producto</h2>
-            <p class="text-xs text-zinc-500 mt-0.5">Cuenta todos los pedidos (pagados o sin pagar).</p>
+            <h2 class="text-base font-bold text-zinc-900">Stock y proyección</h2>
+            <p class="text-xs text-zinc-500 mt-0.5">Descuenta lo ya hecho/entregado y proyecta lo pendiente.</p>
           </div>
           <button onclick="abrirModalInsumo('')"
-            class="px-3 py-2 rounded-xl bg-zinc-900 text-white text-xs font-semibold active:scale-95 transition">
+            class="px-3.5 py-2 rounded-xl bg-zinc-900 text-white text-xs font-semibold active:scale-95 transition shrink-0">
             + Compra
           </button>
         </div>
       </div>
 
-      <div id="listaInsumos" class="space-y-2.5"></div>
+      <div id="listaInsumos" class="space-y-3"></div>
     </div>
 
     <!-- BOTÓN FLOTANTE INFERIOR -->
@@ -229,7 +229,7 @@
         <div class="grid grid-cols-3 gap-2.5">
           <div class="col-span-2">
             <label class="block text-xs font-medium text-zinc-500 mb-1">Producto</label>
-            <input id="producto" list="listaProductosDatalist" type="text" placeholder="Ej: Vela lata"
+            <input id="producto" list="listaProductosDatalist" type="text" placeholder="Ej: Vela en lata"
               class="w-full px-3.5 py-3 rounded-xl bg-zinc-50 border border-zinc-200 text-zinc-900 text-base outline-none focus:bg-white focus:border-zinc-900 transition" />
             <datalist id="listaProductosDatalist"></datalist>
           </div>
@@ -245,7 +245,7 @@
           </div>
         </div>
 
-        <!-- CHIPS DE PRODUCTOS EXISTENTES PARA ELEGIR EN 1 TOQUE -->
+        <!-- CHIPS DE PRODUCTOS EXISTENTES -->
         <div id="chipsProductos" class="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5"></div>
 
         <!-- PRECIO UNITARIO Y GASTO UNITARIO -->
@@ -258,7 +258,7 @@
 
           <div>
             <label class="block text-xs font-medium text-zinc-500 mb-1">Gasto costo c/u ($)</label>
-            <input id="gastoUnitario" type="number" inputmode="decimal" placeholder="2600" oninput="calcularPreview()"
+            <input id="gastoUnitario" type="number" inputmode="decimal" placeholder="2130" oninput="calcularPreview()"
               class="w-full px-3.5 py-3 rounded-xl bg-zinc-50 border border-zinc-200 text-zinc-900 text-base font-semibold outline-none focus:bg-white focus:border-zinc-900 transition num" />
           </div>
         </div>
@@ -362,7 +362,7 @@
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-lg font-bold text-zinc-900">Cargar compra de insumos</h2>
-          <p class="text-xs text-zinc-400">Se suma a lo que ya tenías comprado</p>
+          <p class="text-xs text-zinc-400">Se suma al total comprado de ese producto</p>
         </div>
         <button onclick="cerrarTodosLosModales()" class="text-sm text-zinc-400 font-medium px-2 py-1">Cerrar</button>
       </div>
@@ -370,13 +370,13 @@
       <div class="space-y-3">
         <div>
           <label class="block text-xs font-medium text-zinc-500 mb-1">Producto / Insumo</label>
-          <input id="insumoProducto" list="listaProductosDatalist" type="text" placeholder="Ej: Vela lata"
+          <input id="insumoProducto" list="listaProductosDatalist" type="text" placeholder="Ej: Vela en lata"
             class="w-full px-3.5 py-3 rounded-xl bg-zinc-50 border border-zinc-200 text-zinc-900 text-base outline-none focus:bg-white focus:border-zinc-900 transition" />
         </div>
 
         <div>
-          <label class="block text-xs font-medium text-zinc-500 mb-1">¿Cuántas unidades compraste ahora?</label>
-          <input id="insumoCantidadSumar" type="number" inputmode="numeric" placeholder="Ej: 10"
+          <label class="block text-xs font-medium text-zinc-500 mb-1">¿Cuántas unidades compraste?</label>
+          <input id="insumoCantidadSumar" type="number" inputmode="numeric" placeholder="Ej: 30"
             class="w-full px-3.5 py-3 rounded-xl bg-zinc-50 border border-zinc-200 text-zinc-900 text-base font-semibold outline-none focus:bg-white focus:border-zinc-900 transition num" />
         </div>
       </div>
@@ -394,7 +394,7 @@
   </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbxnCc-dxTQ6L2H5ZzvX_JF9hJlFiDSAMGot8i-Ics2T9SWk1jNpLuJkyAMayFRlhAOfhA/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbxxHqKyWeV74Y_OqRiZsvHMQU9102j2Srnz7k1WS2DXK_kF8RrY7J2gsMkoMJ8AXR2XRg/exec";
 
     let seccionActual = "pedidos";
     let estadoPedido = "Pendiente";
@@ -757,8 +757,8 @@
         todasLasVentas = data.ventas || [];
         todoElStock = data.stock || [];
 
-        // Indicador rojo en la pestaña Insumos si algún producto tiene disponible < 0
-        const hayFaltantes = todoElStock.some(s => s.disponible < 0);
+        // Alerta roja si el saldo proyectado tras hacer los pendientes es negativo
+        const hayFaltantes = todoElStock.some(s => s.saldoFinal < 0);
         document.getElementById("alertaFaltantes").classList.toggle("hidden", !hayFaltantes);
 
         actualizarSugerenciasProductos();
@@ -796,24 +796,44 @@
       }
 
       cont.innerHTML = todoElStock.map(s => {
-        const falta = s.disponible < 0;
-        const justo = s.disponible === 0;
         const esc = s.producto.replace(/'/g, "\\'");
+        const faltaParaPendientes = s.saldoFinal < 0;
 
-        let estadoBadge = "";
-        if (falta) {
-          estadoBadge = `<span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/80 num">Faltan ${Math.abs(s.disponible)}</span>`;
-        } else if (justo) {
-          estadoBadge = `<span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200/80 num">Quedan 0</span>`;
+        // Etiqueta superior: stock físico real en la mesa hoy
+        const stockManoHTML = s.stockActual < 0
+          ? `<span class="text-xs font-semibold text-rose-600 num">Stock en mano: ${s.stockActual}</span>`
+          : `<span class="text-xs font-semibold text-zinc-700 num">En mano hoy: ${s.stockActual}</span>`;
+
+        // Banner inferior de proyección respecto a los pendientes
+        let proyeccionHTML = "";
+        if (s.pendientes === 0) {
+          proyeccionHTML = `<div class="bg-zinc-50 text-zinc-600 px-3 py-2 rounded-xl text-xs font-medium flex justify-between items-center">
+            <span>Sin pedidos pendientes</span>
+            <span class="font-semibold num">Disponibles: ${s.stockActual}</span>
+          </div>`;
+        } else if (faltaParaPendientes) {
+          proyeccionHTML = `<div class="bg-rose-50 text-rose-800 border border-rose-200/70 px-3 py-2 rounded-xl text-xs font-medium flex justify-between items-center">
+            <span>Para cubrir ${s.pendientes} pendientes:</span>
+            <span class="font-bold text-rose-700 num">Faltan comprar ${Math.abs(s.saldoFinal)}</span>
+          </div>`;
         } else {
-          estadoBadge = `<span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 num">Quedan ${s.disponible}</span>`;
+          proyeccionHTML = `<div class="bg-emerald-50 text-emerald-800 border border-emerald-200/70 px-3 py-2 rounded-xl text-xs font-medium flex justify-between items-center">
+            <span>Tras hacer ${s.pendientes} pendientes:</span>
+            <span class="font-bold text-emerald-700 num">Te sobran ${s.saldoFinal}</span>
+          </div>`;
         }
 
         return `
-          <div class="bg-white p-4 rounded-2xl border ${falta ? 'border-rose-200' : 'border-zinc-200/70'}">
-            <div class="flex items-center justify-between gap-2 mb-3">
-              <p class="font-semibold text-zinc-900 text-base">${s.producto}</p>
-              ${estadoBadge}
+          <div class="bg-white p-4 rounded-2xl border ${faltaParaPendientes ? 'border-rose-200' : 'border-zinc-200/70'} space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <div>
+                <p class="font-semibold text-zinc-900 text-base">${s.producto}</p>
+                ${stockManoHTML}
+              </div>
+              <button onclick="abrirModalInsumo('${esc}')"
+                class="px-3 py-1.5 rounded-xl bg-zinc-100 text-zinc-800 text-xs font-semibold active:scale-95 transition">
+                + Sumar compra
+              </button>
             </div>
 
             <div class="grid grid-cols-3 gap-2 pt-2.5 border-t border-zinc-100 text-center">
@@ -822,16 +842,16 @@
                 <p class="font-semibold text-sm text-zinc-800 num">${s.comprado}</p>
               </div>
               <div>
-                <p class="text-[11px] text-zinc-400">En pedidos</p>
+                <p class="text-[11px] text-zinc-400">Hechos/Entreg.</p>
                 <p class="font-semibold text-sm text-zinc-800 num">${s.usado}</p>
               </div>
-              <div class="flex items-center justify-end">
-                <button onclick="abrirModalInsumo('${esc}')"
-                  class="px-2.5 py-1.5 rounded-lg bg-zinc-100 text-zinc-800 text-xs font-semibold active:scale-95 transition">
-                  + Sumar
-                </button>
+              <div>
+                <p class="text-[11px] text-zinc-400">Pendientes</p>
+                <p class="font-semibold text-sm text-amber-700 num">${s.pendientes}</p>
               </div>
             </div>
+
+            ${proyeccionHTML}
           </div>
         `;
       }).join("");
